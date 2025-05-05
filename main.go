@@ -108,13 +108,83 @@ func NextDate(now time.Time, dstart string, repeat string) (string, error) {
 		}
 		return date.Format("20060102"), nil
 	case "w":
+		if len(sliceRepeat) != 2 {
+			return "", errors.New("не указан день недели")
+		}
 
+		weekdays := strings.Replace(sliceRepeat[1], "7", "0", -1)
+		for _, chrday := range strings.Split(weekdays, ",") {
+			i, err := strconv.Atoi(chrday)
+			if err != nil {
+				return "", errors.New("неверный день недели")
+			}
+			if i < 0 || i > 6 {
+				return "", errors.New("неверный день недели")
+			}
+		}
+
+		for {
+			date = date.AddDate(0, 0, 1)
+			if afterNow(date, now) && strings.Contains(weekdays, strconv.Itoa(int(date.Weekday()))) {
+				break
+			}
+		}
+		return date.Format("20060102"), nil
 	case "m":
+		var day [32]bool
+		var month [13]bool
+		lastday := 0
 
+		switch len(sliceRepeat) {
+		case 2, 3:
+			sliceday := strings.Split(sliceRepeat[1], ",")
+			for _, daystr := range sliceday {
+				dayint, err := strconv.Atoi(daystr)
+				if err != nil {
+					return "", errors.New("неверный день месяца")
+				}
+				if dayint < -2 || dayint > 31 || dayint == 0 {
+					return "", errors.New("неверный день месяца")
+				}
+				if dayint > 0 {
+					day[dayint] = true
+					if len(sliceRepeat) == 3 {
+						slicemonth := strings.Split(sliceRepeat[3], ",")
+						for _, monthstr := range slicemonth {
+							monthint, err := strconv.Atoi(monthstr)
+							if err != nil {
+								return "", errors.New("неверный месяц")
+							}
+							if monthint < 1 || monthint > 12 {
+								return "", errors.New("неверный месяц")
+							}
+							month[monthint] = true
+						}
+					} else {
+						for monthint := 1; monthint < 13; monthint++ {
+							month[monthint] = true
+						}
+					}
+				} else if dayint == -1 {
+					lastday = 1
+				} else {
+					lastday = 2
+				}
+			}
+
+			for {
+				date = date.AddDate(0, 0, 1)
+				if afterNow(date, now) {
+					break
+				}
+			}
+			return date.Format("20060102"), nil
+		default:
+			return "", errors.New("не указан день месяца")
+		}
 	default:
 		return "", errors.New("недопустимый символ")
 	}
-
 }
 
 func afterNow(date time.Time, now time.Time) bool {
@@ -127,4 +197,8 @@ func split(repeat string) ([]string, error) {
 	}
 	slice := strings.Split(repeat, " ")
 	return slice, nil
+}
+
+func daysIn(m time.Month, year int) int {
+	return time.Date(year, m+1, 0, 0, 0, 0, 0, time.UTC).Day()
 }

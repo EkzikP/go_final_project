@@ -176,7 +176,7 @@ func NextDate(now time.Time, dstart string, repeat string) (string, error) {
 
 // Функция проверяет что дата после текущей даты
 func afterNow(date time.Time, now time.Time) bool {
-	return date.After(now)
+	return date.Truncate(24 * time.Hour).After(now.Truncate(24 * time.Hour))
 }
 
 // Функция разбивает параметр repeat на массив строк

@@ -3,18 +3,12 @@ package db
 import (
 	"database/sql"
 	_ "modernc.org/sqlite"
+	"os"
 )
 
-type TasksStore struct {
-	db *sql.DB
-}
+var DB *sql.DB
 
-func New(db *sql.DB) *TasksStore {
-	return &TasksStore{db: db}
-}
-
-func (s *TasksStore) Initialize() error {
-	_, err := s.db.Exec(`
+const schema = `
 		CREATE TABLE IF NOT EXISTS scheduler (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
 			date CHAR(8) NOT NULL DEFAULT '',
@@ -23,6 +17,21 @@ func (s *TasksStore) Initialize() error {
 			repeat VARCHAR NOT NULL DEFAULT ''
 		);
 		CREATE INDEX IF NOT EXISTS scheduler_date ON scheduler(date);
-	`)
-	return err
+	`
+
+func Init(dbFile string) error {
+	_, err := os.Stat(dbFile)
+
+	var install bool
+	if err != nil {
+		install = true
+	}
+
+	if install {
+		_, err = DB.Exec(schema)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }

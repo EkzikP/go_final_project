@@ -10,8 +10,6 @@ import (
 	"os"
 )
 
-var DB *sql.DB
-
 func init() {
 	// Загрузка переменных окружения
 	if err := godotenv.Load(); err != nil {

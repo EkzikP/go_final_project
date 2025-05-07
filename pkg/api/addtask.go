@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-type Output struct {
+type Out struct {
 	ID    string `json:"id,omitempty"`
 	Error string `json:"error,omitempty"`
 }
@@ -17,50 +17,48 @@ type Output struct {
 func addTaskHandler(w http.ResponseWriter, r *http.Request) {
 	var task db.Task
 	var buf bytes.Buffer
-	var out Output
 
 	//десериализуем полученный в запросе JSON
 	_, err := buf.ReadFrom(r.Body)
 	if err != nil {
-		out.Error = "ошибка десериализации JSON"
-		response(w, &out)
+		output := "ошибка десериализации JSON"
+		writeJson(w, Out{Error: output})
 		return
 	}
 
 	if err = json.Unmarshal(buf.Bytes(), &task); err != nil {
-		out.Error = "ошибка десериализации JSON"
-		response(w, &out)
+		output := "ошибка десериализации JSON"
+		writeJson(w, Out{Error: output})
 		return
 	}
 
 	//Проверяем, что поле Title не пустое.
 	if task.Title == "" {
-		out.Error = "не указан заголовок задачи"
-		response(w, &out)
+		output := "не указан заголовок задачи"
+		writeJson(w, Out{Error: output})
 		return
 	}
 
 	if err := checkDate(&task); err != nil {
-		out.Error = "дата представлена в формате, отличном от 20060102"
-		response(w, &out)
+		output := "дата представлена в формате, отличном от 20060102"
+		writeJson(w, Out{Error: output})
 		return
 	}
 
 	id, err := db.AddTask(&task)
 	if err != nil {
-		out.Error = err.Error()
-		response(w, &out)
+		output := err.Error()
+		writeJson(w, Out{Error: output})
 		return
 	}
 
-	out.ID = strconv.FormatInt(id, 10)
-	response(w, &out)
+	writeJson(w, Out{ID: strconv.FormatInt(id, 10)})
 }
 
 // Возвращаем ответный JSON клиенту
-func response(w http.ResponseWriter, out *Output) {
-	// сериализуем данные из выходной структуры
-	resp, err := json.Marshal(out)
+
+func writeJson(w http.ResponseWriter, data any) {
+	resp, err := json.Marshal(data)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

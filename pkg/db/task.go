@@ -71,3 +71,19 @@ func GetTask(id string) (*Task, error) {
 	}
 	return t, nil
 }
+
+func DeleteTask(id string) error {
+	query := `DELETE FROM scheduler WHERE id=?`
+	res, err := DB.Exec(query, id)
+	if err != nil {
+		return err
+	}
+	count, err := res.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if count == 0 {
+		return fmt.Errorf(`некорректный id для удаления задачи`)
+	}
+	return nil
+}

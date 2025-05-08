@@ -1,6 +1,7 @@
 package api
 
 import (
+	"go1f/pkg/db"
 	"net/http"
 	"time"
 )
@@ -38,5 +39,42 @@ func taskHandler(w http.ResponseWriter, r *http.Request) {
 		getTaskHandler(w, r)
 	case http.MethodPut:
 		updateTaskHandler(w, r)
+	case http.MethodDelete:
+		deleteTaskHandler(w, r)
 	}
+}
+
+func doneHandler(w http.ResponseWriter, r *http.Request) {
+	id := r.FormValue("id")
+	if id == "" {
+		output := "Не указан id задачи"
+		writeJson(w, Out{Error: output})
+		return
+	}
+
+	err := doneTask(id)
+	if err != nil {
+		output := "Ошибка изменения статуса задачи"
+		writeJson(w, Out{Error: output})
+		return
+	}
+
+	writeJson(w, struct{}{})
+}
+
+func deleteTaskHandler(w http.ResponseWriter, r *http.Request) {
+	id := r.FormValue("id")
+	if id == "" {
+		output := "Не указан id задачи"
+		writeJson(w, Out{Error: output})
+		return
+	}
+
+	err := db.DeleteTask(id)
+	if err != nil {
+		output := "Ошибка удаления задачи"
+		writeJson(w, Out{Error: output})
+		return
+	}
+	writeJson(w, struct{}{})
 }

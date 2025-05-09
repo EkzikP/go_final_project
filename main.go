@@ -4,23 +4,20 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/joho/godotenv"
+	"go1f/pkg/api"
 	"go1f/pkg/db"
 	"go1f/pkg/server"
-	"log"
 	"os"
 )
 
-func init() {
-	// Загрузка переменных окружения
-	if err := godotenv.Load(); err != nil {
-		log.Printf("Не найден файл с переменными окружения")
-	}
-}
-
 func main() {
-	// Инициализация БД
-	TODO_DBFILE, exists := os.LookupEnv("TODO_DBFILE")
-	if !exists {
+
+	_ = godotenv.Load()
+	TODO_PASSWORD := os.Getenv("TODO_PASSWORD")
+	api.PASS = TODO_PASSWORD
+
+	TODO_DBFILE := os.Getenv("TODO_DBFILE")
+	if TODO_DBFILE == "" {
 		TODO_DBFILE = "scheduler.db"
 	}
 
@@ -39,8 +36,8 @@ func main() {
 	}
 
 	// Запуск WEB сервера
-	TODO_PORT, exists := os.LookupEnv("TODO_PORT")
-	if !exists {
+	TODO_PORT := os.Getenv("TODO_PORT")
+	if TODO_PORT == "" {
 		TODO_PORT = "7540"
 	}
 	str := startServer(TODO_PORT)

@@ -87,3 +87,41 @@ func DeleteTask(id string) error {
 	}
 	return nil
 }
+
+func SearchString(search string, limit int) ([]*Task, error) {
+	query := `SELECT * FROM scheduler WHERE title LIKE ? OR comment LIKE ? ORDER BY date LIMIT ?`
+	rows, err := DB.Query(query, search, search, limit)
+	if err != nil {
+		return []*Task{}, err
+	}
+	defer rows.Close()
+	tasks := []*Task{}
+	for rows.Next() {
+		t := &Task{}
+		err := rows.Scan(&t.ID, &t.Date, &t.Title, &t.Comment, &t.Repeat)
+		if err != nil {
+			return []*Task{}, err
+		}
+		tasks = append(tasks, t)
+	}
+	return tasks, nil
+}
+
+func SearchDate(search string, limit int) ([]*Task, error) {
+	query := `SELECT * FROM scheduler WHERE date LIKE ? ORDER BY date LIMIT ?`
+	rows, err := DB.Query(query, search, limit)
+	if err != nil {
+		return []*Task{}, err
+	}
+	defer rows.Close()
+	tasks := []*Task{}
+	for rows.Next() {
+		t := &Task{}
+		err := rows.Scan(&t.ID, &t.Date, &t.Title, &t.Comment, &t.Repeat)
+		if err != nil {
+			return []*Task{}, err
+		}
+		tasks = append(tasks, t)
+	}
+	return tasks, nil
+}

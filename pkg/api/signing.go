@@ -18,21 +18,18 @@ func signingHandler(w http.ResponseWriter, r *http.Request) {
 	//десериализуем полученный в запросе JSON
 	_, err := buf.ReadFrom(r.Body)
 	if err != nil {
-		output := "ошибка десериализации JSON"
-		writeJson(w, Out{Error: output})
+		http.Redirect(w, r, "/login.html", http.StatusUnauthorized)
 		return
 	}
 
 	if err = json.Unmarshal(buf.Bytes(), &insertedPass); err != nil {
-		output := "ошибка десериализации JSON"
-		writeJson(w, Out{Error: output})
+		http.Redirect(w, r, "/login.html", http.StatusUnauthorized)
 		return
 	}
 
 	enterPass, ok := insertedPass["password"]
 	if !ok || enterPass != PASS {
-		output := "ошибка авторизации, введён неправильный пароль"
-		writeJson(w, Out{Error: output})
+		http.Redirect(w, r, "/login.html", http.StatusUnauthorized)
 		return
 	}
 
@@ -45,8 +42,7 @@ func signingHandler(w http.ResponseWriter, r *http.Request) {
 	jwtToken := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	token, err := jwtToken.SignedString(secret)
 	if err != nil {
-		output := err.Error()
-		writeJson(w, Out{Error: output})
+		http.Redirect(w, r, "/login.html", http.StatusUnauthorized)
 		return
 	}
 	writeJson(w, map[string]string{"token": token})

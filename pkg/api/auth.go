@@ -23,16 +23,18 @@ func auth(next http.HandlerFunc) http.HandlerFunc {
 				return secretKey, nil
 			})
 			if err != nil {
-				output := "ошибка парсинга токена"
-				writeJson(w, Out{Error: output})
+				//output := "ошибка парсинга токена"
+				//writeJson(w, Out{Error: output})
+				http.Redirect(w, r, "/login.html", http.StatusUnauthorized)
 				return
 			}
 
 			// приводим поле Claims к типу jwt.MapClaims
 			res, ok := jwtToken.Claims.(jwt.MapClaims)
 			if !ok {
-				output := "ошибка парсинга токена"
-				writeJson(w, Out{Error: output})
+				//output := "ошибка парсинга токена"
+				//writeJson(w, Out{Error: output})
+				http.Redirect(w, r, "/login.html", http.StatusUnauthorized)
 				return
 			}
 
@@ -41,8 +43,9 @@ func auth(next http.HandlerFunc) http.HandlerFunc {
 			// снова сделать приведение типа к строке.
 			hash, ok := hashRaw.(string)
 			if !ok {
-				output := "ошибка парсинга токена"
-				writeJson(w, Out{Error: output})
+				//output := "ошибка парсинга токена"
+				//writeJson(w, Out{Error: output})
+				http.Redirect(w, r, "/login.html", http.StatusUnauthorized)
 				return
 			}
 
@@ -51,8 +54,9 @@ func auth(next http.HandlerFunc) http.HandlerFunc {
 			sha1_hash := hex.EncodeToString(h.Sum(nil))
 
 			if hash != sha1_hash {
-				output := "ошибка авторизации, введён неправильный пароль"
-				writeJson(w, Out{Error: output})
+				//output := "ошибка авторизации, введён неправильный пароль"
+				//writeJson(w, Out{Error: output})
+				http.Redirect(w, r, "/login.html", http.StatusUnauthorized)
 				return
 			} else {
 				valid = true
@@ -60,7 +64,7 @@ func auth(next http.HandlerFunc) http.HandlerFunc {
 
 			if !valid {
 				// возвращаем ошибку авторизации 401
-				http.Error(w, "Authentification required", http.StatusUnauthorized)
+				http.Redirect(w, r, "/login.html", http.StatusUnauthorized)
 				return
 			}
 		}
